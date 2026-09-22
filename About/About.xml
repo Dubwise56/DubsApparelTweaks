@@ -10,7 +10,7 @@
     <li>1.4</li>
     <li>1.6</li>
   </supportedVersions>
-  <packageId>Dubwise.DubsApparelTweaks</packageId>
+  <packageId>Dubwise.DubsApparelTweaks.git</packageId>
   <modVersion>1.6.1</modVersion>
   <description>Change equip speeds, hide hats indoors/in bed, show hair under hats</description>
 </ModMetaData>
