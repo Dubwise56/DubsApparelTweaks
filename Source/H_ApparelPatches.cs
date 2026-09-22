@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -122,21 +124,44 @@ namespace QuickFast.Source
                     return;
                 }
 
+                if (!__instance.useHeadMesh)
+                {
+                    return;
+                }
+
                 if (__instance.Props.overrideMeshSize != null)
                 {
                     __result = MeshPool.GetMeshSetForSize(__instance.Props.overrideMeshSize.Value.x * Settings.hairMeshScale, __instance.Props.overrideMeshSize.Value.y * Settings.hairMeshScale);
                     return;
                 }
 
-                if (__instance.useHeadMesh)
-                {
-                    __result = HumanlikeMeshPoolUtility.GetHumanlikeHeadSetForPawn(pawn, 1f * Settings.hairMeshScale, 1f * Settings.hairMeshScale);
-                    return;
-                }
-
-                __result = HumanlikeMeshPoolUtility.GetHumanlikeBodySetForPawn(pawn, 1f * Settings.hairMeshScale, 1f * Settings.hairMeshScale);
-                return;
+                __result = HumanlikeMeshPoolUtility.GetHumanlikeHeadSetForPawn(pawn, 1f * Settings.hairMeshScale, 1f * Settings.hairMeshScale);
             }
+        }
+        
+        [HarmonyPatch(typeof(PawnRenderNodeWorker), nameof(PawnRenderNodeWorker.LayerFor))]
+        public static class H_LayerFor
+        {
+            public static void Postfix(PawnRenderNode node, ref float __result)
+            {
+                if (Settings.ShowHairUnderHats && node is PawnRenderNode_Apparel apparelNode && apparelNode.useHeadMesh && Math.Abs(Settings.hairMeshScale - 1f) >= 0.001f)
+                {
+                    __result += 0.5f;
+                }
+            }
+        }
+
+        private static readonly Dictionary<ThingDef, bool> hidesHeadCache = new Dictionary<ThingDef, bool>();
+
+        // any mod extension with a bool hideHead field, checked by name so there is no dependency on VEF
+        public static bool HidesHead(ThingDef def)
+        {
+            if (!hidesHeadCache.TryGetValue(def, out var hides))
+            {
+                hides = def.modExtensions != null && def.modExtensions.Any(e => e.GetType().GetField("hideHead") is FieldInfo f && f.FieldType == typeof(bool) && (bool)f.GetValue(e));
+                hidesHeadCache[def] = hides;
+            }
+            return hides;
         }
 
         public static bool ShouldHideApparel(Pawn pawn, Apparel apparel)
@@ -150,7 +175,13 @@ namespace QuickFast.Source
             {
                 return false;
             }
-            
+
+            // apparel that replaces the head (VFE Pirates warcasket helmets via VEF ApparelExtension.hideHead) would leave a headless pawn
+            if (HidesHead(apparel.def))
+            {
+                return false;
+            }
+
             // Check if pawn should have apparel hidden based on mod settings
             if (Settings.apparelHidingMode == ApparelHidingMode.WhenNotDrafted || Settings.apparelHidingMode == ApparelHidingMode.IndoorsOrNotDrafted)
             {
