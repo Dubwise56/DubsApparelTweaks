@@ -1,0 +1,33 @@
+<Project>
+  <!-- RimWorld 1.7 build: .NET 10, bundles Harmony 3, writes to 1.7\Assemblies. RimWorld17 is the 1.7 game folder. -->
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>obj\1.7\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <RimWorld17 Condition="'$(RimWorld17)' == ''">..\..</RimWorld17>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>QuickFast</AssemblyName>
+    <OutputPath>1.7\Assemblies\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <Deterministic>false</Deterministic>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs;Source\**\*.cs" />
+    <PackageReference Include="Lib.Harmony" Version="3.0.0-rc.2" />
+    <Reference Include="Assembly-CSharp"><HintPath>$(RimWorld17)\publicized_assemblies\Assembly-CSharp_publicized.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityStubs"><HintPath>$(RimWorld17)\UnityStubs.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Waylith"><HintPath>$(RimWorld17)\Waylith.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>
